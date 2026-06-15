@@ -1,0 +1,17 @@
+{
+  "name": "salesflow",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
+    "format": "prettier . --write"
+  },
+  "type": "module",
+  "devDependencies": {
+    "prettier": "^3.8.4",
+    "prettier-plugin-prisma": "^5.0.0"
+  }
+}
