@@ -7,21 +7,14 @@ import { PermissionController } from "../controllers/permission.controller.js";
 import {
     createPermissionSchema,
 } from "../validators/permission.validator.js";
+import { auth } from "../../../middleware/auth.middleware.js";
+import { requirePermission } from "../../../middleware/permission.middleware.js";
 
 const router = Router();
 
-const permissionController =
-    new PermissionController();
+const permissionController = new PermissionController();
 
-router.post(
-    "/",
-    validate(createPermissionSchema),
-    permissionController.create,
-);
-
-router.get(
-    "/:id",
-    permissionController.findById,
-);
+router.post("/", auth, requirePermission("permission.create"), validate(createPermissionSchema), permissionController.create);
+router.get("/:id", auth, requirePermission("permission.view"), permissionController.findById);
 
 export default router;

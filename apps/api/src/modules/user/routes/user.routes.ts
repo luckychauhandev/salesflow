@@ -1,7 +1,7 @@
 import { Router } from "express";
-
+import { auth } from "../../../middleware/auth.middleware.js";
+import { requirePermission } from "../../../middleware/permission.middleware.js";
 import { validate } from "../../../middleware/validation.middleware.js";
-
 import { UserController } from "../controllers/user.controller.js";
 
 import {
@@ -10,18 +10,10 @@ import {
 
 const router = Router();
 
-const userController =
-  new UserController();
+const userController = new UserController();
 
-router.post(
-  "/",
-  validate(createUserSchema),
-  userController.create,
-);
+router.post("/", auth, requirePermission("user.create"), validate(createUserSchema), userController.create);
 
-router.get(
-  "/:id",
-  userController.findById,
-);
+router.get("/:id", auth, requirePermission("user.view"), userController.findById);
 
 export default router;

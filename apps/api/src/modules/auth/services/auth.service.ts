@@ -1,19 +1,21 @@
 import { UnauthorizedError } from "../../../shared/errors/unauthorized-error.js";
 
 import { OrganizationService } from "../../organization/services/organization.service.js";
+import { UserRepository } from "../../user/repositories/user.repository.js";
 import { UserService } from "../../user/services/user.service.js";
 
 import { JwtService } from "./jwt.service.js";
 import { PasswordService } from "./password.service.js";
+import { RefreshTokenService } from "./refresh-token.service.js";
 
 export class AuthService {
   constructor(
-    private readonly organizationService =
-      new OrganizationService(),
-
-    private readonly userService =
-      new UserService(),
-  ) {}
+    private readonly organizationService = new OrganizationService(),
+    private readonly userService = new UserService(),
+    private readonly refreshTokenService = new RefreshTokenService(),
+    private readonly userRepository =
+      new UserRepository(),
+  ) { }
 
   async register(data: {
     organizationName: string;
@@ -61,6 +63,19 @@ export class AuthService {
       JwtService.generateRefreshToken(
         payload,
       );
+
+    await this.refreshTokenService.store(
+      user.id,
+      refreshToken,
+      new Date(
+        Date.now() +
+        1000 *
+        60 *
+        60 *
+        24 *
+        30,
+      ),
+    );
 
     return {
       user,
@@ -113,5 +128,99 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async refresh(
+    refreshToken: string,
+  ) {
+    if (!refreshToken) {
+      throw new UnauthorizedError(
+        "Refresh token required",
+      );
+    }
+
+    const payload =
+      JwtService.verifyRefreshToken(
+        refreshToken,
+      );
+
+    const user =
+      await this.userRepository.findById(
+        payload.sub,
+      );
+
+    if (!user) {
+      throw new UnauthorizedError(
+        "User not found",
+      );
+    }
+
+    const isValid =
+      await this.refreshTokenService.validate(
+        user.id,
+        refreshToken,
+      );
+
+    if (!isValid) {
+      throw new UnauthorizedError(
+        "Invalid refresh token",
+      );
+    }
+
+    await this.refreshTokenService.revoke(
+      user.id,
+    );
+
+    const newPayload = {
+      sub: user.id,
+      organizationId:
+        user.organizationId,
+    };
+
+    const accessToken =
+      JwtService.generateAccessToken(
+        newPayload,
+      );
+
+    const newRefreshToken =
+      JwtService.generateRefreshToken(
+        newPayload,
+      );
+
+    await this.refreshTokenService.store(
+      user.id,
+      newRefreshToken,
+      new Date(
+        Date.now() +
+        1000 *
+        60 *
+        60 *
+        24 *
+        30,
+      ),
+    );
+
+    return {
+      accessToken,
+      refreshToken:
+        newRefreshToken,
+    };
+  }
+
+  async logout(
+    refreshToken: string,
+  ) {
+    if (!refreshToken) {
+      return;
+    }
+
+    const payload =
+      JwtService.verifyRefreshToken(
+        refreshToken,
+      );
+
+    await this.refreshTokenService.revoke(
+      payload.sub,
+    );
   }
 }

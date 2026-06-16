@@ -3,8 +3,8 @@ import { prisma } from "../../../infrastructure/database/prisma-client.js";
 import type { IUserRepository } from "../contracts/user.repository.contract.js";
 
 export class UserRepository
-  implements IUserRepository
-{
+  implements IUserRepository {
+
   async create(data: {
     organizationId: string;
     email: string;
@@ -35,6 +35,22 @@ export class UserRepository
         organizationId,
         email,
         isDeleted: false,
+      },
+    });
+  }
+
+  async findAuthUser(id: string) {
+    return prisma.user.findFirst({
+      where: {
+        id,
+        isActive: true,
+        isDeleted: false,
+        organization: {
+          isDeleted: false,
+        },
+      },
+      include: {
+        organization: true,
       },
     });
   }

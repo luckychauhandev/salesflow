@@ -1,27 +1,64 @@
-import { Request, Response, NextFunction } from "express";
+import type {
+  NextFunction,
+  Request,
+  Response,
+} from "express";
 
-export const authorize =
-  (...permissions: string[]) =>
-  async (
+import { ForbiddenError } from "../shared/errors/forbidden-error.js";
+import { UnauthorizedError } from "../shared/errors/unauthorized-error.js";
+
+import { UserRoleRepository } from "../modules/user-role/repositories/user-role.repository.js";
+
+const userRoleRepository =
+  new UserRoleRepository();
+
+export function requirePermission(
+  permissionName: string,
+) {
+  return async (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction,
   ) => {
-    const userPermissions =
-      (req as Request & {
-        permissions?: string[];
-      }).permissions ?? [];
+    try {
+      if (!req.user) {
+        return next(
+          new UnauthorizedError(
+            "Unauthorized",
+          ),
+        );
+      }
 
-    const allowed = permissions.some((permission) =>
-      userPermissions.includes(permission),
-    );
+      const userRoles =
+        await userRoleRepository.findUserPermissions(
+          req.user.id,
+        );
 
-    if (!allowed) {
-      return res.status(403).json({
-        success: false,
-        message: "Forbidden",
-      });
+      const permissions =
+        userRoles.flatMap(
+          (userRole) =>
+            userRole.role.rolePermissions.map(
+              (rolePermission) =>
+                rolePermission.permission.name,
+            ),
+        );
+
+      const hasPermission =
+        permissions.includes(
+          permissionName,
+        );
+
+      if (!hasPermission) {
+        return next(
+          new ForbiddenError(
+            "Insufficient permissions",
+          ),
+        );
+      }
+
+      next();
+    } catch (error) {
+      next(error);
     }
-
-    next();
   };
+}

@@ -21,4 +21,8 @@ export interface IUserRepository {
     organizationId: string,
     email: string,
   ): Promise<UserRecord>;
+
+  findAuthUser(
+    id: string,
+  ): Promise<Awaited<ReturnType<typeof prisma.user.findFirst>>>;
 }

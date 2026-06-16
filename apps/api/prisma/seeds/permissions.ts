@@ -13,7 +13,18 @@ const permissions = [
   "role.update",
   "role.delete",
 
-  "permission.assign",
+  "permission.create",
+  "permission.view",
+  "permission.update",
+  "permission.delete",
+
+  "user-role.assign",
+  "user-role.view",
+
+  "role-permission.assign",
+  "role-permission.view",
+
+  "audit-log.view",
 
   "lead.create",
   "lead.view",

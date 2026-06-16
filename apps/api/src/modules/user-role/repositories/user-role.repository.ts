@@ -25,6 +25,25 @@ export class UserRoleRepository
         });
     }
 
+    async findUserPermissions(userId: string) {
+        return prisma.userRole.findMany({
+            where: {
+                userId,
+            },
+            include: {
+                role: {
+                    include: {
+                        rolePermissions: {
+                            include: {
+                                permission: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
     async findByUserId(
         userId: string,
     ) {

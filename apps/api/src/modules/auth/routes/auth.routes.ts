@@ -14,8 +14,12 @@ import {
 
 const router = Router();
 
-const authController =
-  new AuthController();
+const authController = new AuthController();
+
+router.post(
+  "/refresh",
+  authController.refresh,
+);
 
 router.post(
   "/register",
@@ -27,6 +31,11 @@ router.post(
   "/login",
   validate(loginSchema),
   authController.login,
+);
+
+router.post(
+  "/logout",
+  authController.logout,
 );
 
 export default router;

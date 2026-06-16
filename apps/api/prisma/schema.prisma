@@ -44,6 +44,8 @@ model User {
   userRoles UserRole[]
   auditLogs AuditLog[] @relation("AuditActor")
 
+  refreshTokens RefreshToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -138,4 +140,22 @@ model AuditLog {
   @@index([organizationId])
   @@index([actorId])
   @@index([resourceType, resourceId])
+}
+
+model RefreshToken {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String
+
+  expiresAt DateTime
+
+  isRevoked Boolean   @default(false)
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())  
+  
+  @@index([userId])
 }

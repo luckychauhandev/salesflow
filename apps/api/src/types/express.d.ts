@@ -1,4 +1,4 @@
-import { User } from "../../generated/prisma/models";
+import "express";
 
 declare global {
   namespace Express {
@@ -6,9 +6,10 @@ declare global {
       user?: {
         id: string;
         organizationId: string;
+        email?: string;
       };
     }
   }
 }
 
-export {};
+export { };

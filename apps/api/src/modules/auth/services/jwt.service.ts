@@ -2,9 +2,11 @@ import jwt from "jsonwebtoken";
 
 import { env } from "../../../config/env.js";
 
+import type { JwtPayload } from "../types/jwt-payload.js";
+
 export class JwtService {
   static generateAccessToken(
-    payload: object,
+    payload: JwtPayload,
   ) {
     return jwt.sign(
       payload,
@@ -17,7 +19,7 @@ export class JwtService {
   }
 
   static generateRefreshToken(
-    payload: object,
+    payload: JwtPayload,
   ) {
     return jwt.sign(
       payload,
@@ -35,7 +37,7 @@ export class JwtService {
     return jwt.verify(
       token,
       env.JWT_ACCESS_SECRET,
-    );
+    ) as JwtPayload;
   }
 
   static verifyRefreshToken(
@@ -44,6 +46,6 @@ export class JwtService {
     return jwt.verify(
       token,
       env.JWT_REFRESH_SECRET,
-    );
+    ) as JwtPayload;
   }
 }
