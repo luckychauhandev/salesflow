@@ -3,16 +3,12 @@ import { Request, Response, NextFunction } from "express";
 
 export const validate =
   (schema: ZodType) =>
-  (req: Request, _res: Response, next: NextFunction) => {
-    try {
-      schema.parse({
-        body: req.body,
-        query: req.query,
-        params: req.params,
-      });
+    (req: Request, _res: Response, next: NextFunction) => {
+      try {
+        schema.parse(req.body);
 
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
+        next();
+      } catch (error) {
+        next(error);
+      }
+    };

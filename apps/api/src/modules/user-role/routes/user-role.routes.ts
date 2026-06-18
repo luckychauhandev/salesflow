@@ -1,7 +1,5 @@
 import { Router } from "express";
-
 import { validate } from "../../../middleware/validation.middleware.js";
-
 import { UserRoleController } from "../controllers/user-role.controller.js";
 
 import {

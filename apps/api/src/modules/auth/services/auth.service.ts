@@ -1,3 +1,4 @@
+import ms, { StringValue } from "ms";
 import { UnauthorizedError } from "../../../shared/errors/unauthorized-error.js";
 
 import { OrganizationService } from "../../organization/services/organization.service.js";
@@ -7,6 +8,7 @@ import { UserService } from "../../user/services/user.service.js";
 import { JwtService } from "./jwt.service.js";
 import { PasswordService } from "./password.service.js";
 import { RefreshTokenService } from "./refresh-token.service.js";
+import { env } from "../../../config/env.js";
 
 export class AuthService {
   constructor(
@@ -95,6 +97,24 @@ export class AuthService {
         data.email,
       );
 
+    if (!user) {
+      throw new UnauthorizedError(
+        "Invalid credentials",
+      );
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedError(
+        "User account is inactive",
+      );
+    }
+
+    if (user.isDeleted) {
+      throw new UnauthorizedError(
+        "User account is deleted",
+      );
+    }
+
     const isValid =
       await PasswordService.verify(
         user.passwordHash,
@@ -122,6 +142,17 @@ export class AuthService {
       JwtService.generateRefreshToken(
         payload,
       );
+
+    await this.refreshTokenService.store(
+      user.id,
+      refreshToken,
+      new Date(
+        Date.now() +
+        ms(
+          env.JWT_REFRESH_EXPIRES_IN as StringValue,
+        ),
+      ),
+    );
 
     return {
       user,
